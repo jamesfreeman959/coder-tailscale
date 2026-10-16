@@ -1,0 +1,7 @@
+# Included from ~/.ssh/config by install.sh.
+#
+# In userspace mode there's no tailnet network interface, so plain ssh can't
+# reach tailnet addresses. Send these hosts through `tailscale nc` instead.
+# Add your own short MagicDNS names to the Host line (e.g. "Host host1 host2").
+Host *.ts.net 100.*
+	ProxyCommand ~/.local/bin/ts nc %h %p

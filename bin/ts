@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# `tailscale`, pointed at the workspace's userspace daemon socket.
+#   ts status | ts ssh user@host | ts nc host 22 | ts ping host | ...
+set -euo pipefail
+. "$(dirname "$(readlink -f "$0")")/../lib/common.sh"
+ts_resolve_bins
+exec "$TAILSCALE" --socket="$TS_SOCKET" "$@"

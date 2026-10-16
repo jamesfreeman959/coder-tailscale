@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Start the userspace tailscaled (if needed) and log in (if needed).
+#
+#   ts-up                 start daemon, then log in interactively (prints a URL)
+#   ts-up --daemon-only   just make sure the daemon is running (for startup scripts)
+#   ts-up -- <flags>      pass extra flags to `tailscale up`
+set -euo pipefail
+. "$(dirname "$(readlink -f "$0")")/../lib/common.sh"
+
+daemon_only=0
+extra=()
+while [ $# -gt 0 ]; do
+	case "$1" in
+	--daemon-only) daemon_only=1 ;;
+	--) shift; extra=("$@"); break ;;
+	-h | --help) sed -n '2,7s/^# \{0,1\}//p' "$0"; exit 0 ;;
+	*) ts_die "unknown argument: $1 (use -- to pass flags to tailscale up)" ;;
+	esac
+	shift
+done
+
+ts_resolve_bins
+ts_ensure_daemon
+[ "$daemon_only" = 1 ] && exit 0
+
+state=$(ts_backend_state)
+if [ "$state" = Running ] && [ ${#extra[@]} -eq 0 ]; then
+	echo "Already connected as $TS_HOSTNAME."
+	exit 0
+fi
+
+echo "Connecting as $TS_HOSTNAME (open the URL below on your laptop if asked)..."
+# shellcheck disable=SC2086
+ts_cli up --hostname="$TS_HOSTNAME" $TS_UP_FLAGS "${extra[@]}"
+ts_cli status --peers=false
