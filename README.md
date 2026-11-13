@@ -69,7 +69,7 @@ they are:
 git clone <this repo> ~/coder-tailscale   # anywhere under your persistent home
 cd ~/coder-tailscale
 ./install.sh
-. ~/.bashrc   # or open a new terminal
+# then open a new terminal
 ts-up
 ```
 
@@ -77,12 +77,13 @@ ts-up
 
 1. Runs `mise use -g aqua:tailscale/tailscale@latest`.
 2. Symlinks `ts`, `ts-up` and `ts-down` into `~/.local/bin`.
-3. Adds one line to `~/.bashrc` that sources `shell/bashrc.sh`.
+3. Adds one line to `~/.bashrc`, and to `~/.zshrc` if zsh is installed, that sources
+   `shell/rc.sh` (works in bash and zsh).
 4. Adds `Include …/ssh/config` at the top of `~/.ssh/config`.
 
 ## Daily use
 
-After a container start or restart, open a terminal. The `.bashrc` hook starts
+After a container start or restart, open a terminal. The shell hook (`.bashrc` / `.zshrc`) starts
 `tailscaled` in the background and tells you if you need to log in:
 
 ```
@@ -128,7 +129,7 @@ Optional overrides go in `~/.config/coder-tailscale.env` (sourced as shell):
 TS_PERSIST=1               # keep login across daemon restarts (see below)
 TS_HOSTNAME=my-workspace   # default: coder-$CODER_WORKSPACE_NAME
 TS_UP_FLAGS="--accept-routes"
-TS_AUTOSTART=0             # don't start the daemon from .bashrc
+TS_AUTOSTART=0             # don't start the daemon from the shell hook
 ```
 
 ### Ephemeral vs persistent
@@ -147,7 +148,7 @@ the price.
 
 ### Coder template (optional)
 
-The `.bashrc` hook only starts the daemon when you open a terminal. To have it
+The shell hook only starts the daemon when you open a terminal. To have it
 running as soon as the workspace starts (e.g. for a VS Code remote session
 that never opens a shell), add this to the agent's `startup_script`:
 
@@ -191,7 +192,8 @@ bin/ts             tailscale CLI wrapper (adds --socket)
 bin/ts-up          start daemon + log in
 bin/ts-down        log out (ephemeral) + stop daemon
 lib/common.sh      shared settings and helpers
-shell/bashrc.sh    alias, daemon autostart, login hint
+shell/rc.sh        shell hook (bash and zsh): alias, daemon autostart, login hint
+shell/bashrc.sh    old name of rc.sh, kept for existing ~/.bashrc lines
 ssh/config         ProxyCommand for tailnet hosts
 ```
 

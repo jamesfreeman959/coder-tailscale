@@ -4,7 +4,8 @@
 #
 #   - installs tailscale globally through mise
 #   - links ts, ts-up and ts-down into ~/.local/bin
-#   - adds a source line to ~/.bashrc (alias + login hint + daemon autostart)
+#   - adds a source line to ~/.bashrc, and ~/.zshrc if zsh is installed
+#     (alias + login hint + daemon autostart)
 #   - adds an Include to ~/.ssh/config for tailnet hosts
 set -euo pipefail
 here="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
@@ -21,13 +22,18 @@ for cmd in ts ts-up ts-down; do
 done
 
 echo "==> ~/.bashrc"
-bashrc_line="[ -f \"$here/shell/bashrc.sh\" ] && . \"$here/shell/bashrc.sh\"  # coder-tailscale"
-if grep -qF "# coder-tailscale" "$HOME/.bashrc" 2>/dev/null; then
-	echo "    already present"
-else
-	printf '\n%s\n' "$bashrc_line" >>"$HOME/.bashrc"
-	echo "    added"
-fi
+rc_line="[ -f \"$here/shell/rc.sh\" ] && . \"$here/shell/rc.sh\"  # coder-tailscale"
+for rc in "$HOME/.bashrc" "$HOME/.zshrc"; do
+	if [ "$rc" = "$HOME/.zshrc" ] && ! command -v zsh >/dev/null && [ ! -f "$rc" ]; then
+		continue
+	fi
+	if grep -qF "# coder-tailscale" "$rc" 2>/dev/null; then
+		echo "    $(basename "$rc"): already present"
+	else
+		printf '\n%s\n' "$rc_line" >>"$rc"
+		echo "    $(basename "$rc"): added"
+	fi
+done
 
 echo "==> ~/.ssh/config"
 mkdir -p "$HOME/.ssh"
@@ -47,4 +53,4 @@ else
 fi
 
 echo
-echo "Done. Open a new terminal (or: . ~/.bashrc), then run: ts-up"
+echo "Done. Open a new terminal, then run: ts-up"
